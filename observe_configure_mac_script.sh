@@ -145,6 +145,26 @@ getConfigurationFiles(){
       log "$filename created"
       log "$SPACER"
     fi
+  
+    # DOWNLOADING A DMG. In most of this script, we use a package manager.
+    # Brew's td-agent definition is two years / four minor versions old and unsigned.
+    # This makes Treasure Data's DMG the better option at this time.
+    if [ ! -f "$config_file_directory/td-agent-4.5.0-arm64.dmg" ]; then
+      url="https://s3.amazonaws.com/packages.treasuredata.com/4/macosx/td-agent-4.5.0-arm64.dmg"
+
+      filename="$config_file_directory/td-agent-4.5.0-arm64.dmg"
+
+      log "$SPACER"
+      log "filename = $filename"
+      log "$SPACER"
+      log "url = $url"
+      curl "$url" > "$filename"
+
+      log "$SPACER"
+      log "$filename created"
+      log "$SPACER"
+    fi
+    
 }
 
 generateTestKey(){
@@ -552,13 +572,13 @@ log "$SPACER"
 
 cd "$config_file_directory" || (exit && log "$SPACER CONFIG FILE DIRECTORY PROBLEM - $(pwd) - $config_file_directory - $END_OUTPUT $SPACER")
 
-sed -i '' -e "s/REPLACE_WITH_DATACENTER/${DEFAULT_OBSERVE_DATA_CENTER}/g" ./*
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_DATACENTER/${DEFAULT_OBSERVE_DATA_CENTER}/g" ./*
 
-sed -i '' -e "s/REPLACE_WITH_HOSTNAME/${DEFAULT_OBSERVE_HOSTNAME}/g" ./*
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_HOSTNAME/${DEFAULT_OBSERVE_HOSTNAME}/g" ./*
 
-sed -i '' -e "s/REPLACE_WITH_CUSTOMER_INGEST_TOKEN/${ingest_token}/g" ./*
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_CUSTOMER_INGEST_TOKEN/${ingest_token}/g" ./*
 
-sed -i '' -e "s/REPLACE_WITH_OBSERVE_ENVIRONMENT/${OBSERVE_ENVIRONMENT}/g" ./*
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_OBSERVE_ENVIRONMENT/${OBSERVE_ENVIRONMENT}/g" ./*
 
 if [ "$appgroup" != UNSET ]; then
     sed -i '' -e "s/#REPLACE_WITH_OBSERVE_APP_GROUP_OPTION/Record appgroup ${appgroup}/g" ./*
@@ -623,7 +643,9 @@ if [ "$fluentbitinstall" == TRUE ]; then
   printMessage "fluent"
   
   # INSTALL
-  brew install --cask td-agent
+  hdiutil attach $config_file_directory/td-agent-4.5.0-arm64.dmg
+  sudo installer -package /Volumes/td-agent/td-agent-4.5.0.pkg -target /
+  hdiutil detach /Volumes/td-agent
 
   # CONFIGURE
   sourcefilename=$config_file_directory/td-agent-bit.conf
@@ -699,7 +721,7 @@ if [ "$fluentbitinstall" == TRUE ]; then
   fi
 
   log "$SPACER"
-  log "Check status - sudo service td-agent-bit status"
+  log "Check status - sudo launchctl list td-agent"
   log "Config file location: ${td_agent_bit_filename}"
   log
 fi
