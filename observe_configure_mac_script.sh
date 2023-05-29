@@ -86,9 +86,9 @@ getConfigurationFiles(){
       log "$SPACER"
     fi
 
-    if [ ! -f "$config_file_directory/observe-linux-host.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/observe-linux-host.conf"
-      filename="$config_file_directory/observe-linux-host.conf"
+    if [ ! -f "$config_file_directory/observe-mac-host.conf" ]; then
+      url="https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/${branch_replace}/observe-mac-host.conf"
+      filename="$config_file_directory/observe-mac-host.conf"
 
       log "$SPACER"
       log "filename = $filename"
@@ -146,25 +146,6 @@ getConfigurationFiles(){
       log "$SPACER"
     fi
   
-    # DOWNLOADING A DMG. In most of this script, we use a package manager.
-    # Brew's td-agent definition is two years / four minor versions old and unsigned.
-    # This makes Treasure Data's DMG the better option at this time.
-    if [ ! -f "$config_file_directory/td-agent-4.5.0-arm64.dmg" ]; then
-      url="https://s3.amazonaws.com/packages.treasuredata.com/4/macosx/td-agent-4.5.0-arm64.dmg"
-
-      filename="$config_file_directory/td-agent-4.5.0-arm64.dmg"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-    
 }
 
 generateTestKey(){
@@ -310,7 +291,7 @@ includeFiletdAgent(){
 
         case ${i} in
             linux_host)
-              sudo cp "$config_file_directory/observe-linux-host.conf" /etc/td-agent/observe-linux-host.conf;
+              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/td-agent/observe-mac-host.conf;
               ;;
             *)
               log "includeFiletdAgent function failed - i = $i"
@@ -341,7 +322,7 @@ includeFilefluentAgent(){
 
         case ${i} in
             linux_host)
-              sudo cp "$config_file_directory/observe-linux-host.conf" /etc/fluent-bit/observe-linux-host.conf;
+              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf;
               ;;
             *)
               log "includeFiletdAgent function failed - i = $i"
@@ -581,7 +562,7 @@ LC_ALL=C sed -i '' -e "s/REPLACE_WITH_CUSTOMER_INGEST_TOKEN/${ingest_token}/g" .
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_OBSERVE_ENVIRONMENT/${OBSERVE_ENVIRONMENT}/g" ./*
 
 if [ "$appgroup" != UNSET ]; then
-    sed -i '' -e "s/#REPLACE_WITH_OBSERVE_APP_GROUP_OPTION/Record appgroup ${appgroup}/g" ./*
+    LC_ALL=C sed -i '' -e "s/#REPLACE_WITH_OBSERVE_APP_GROUP_OPTION/Record appgroup ${appgroup}/g" ./*
 fi
 
 testEject "${testeject}" "EJECT2"
@@ -643,9 +624,7 @@ if [ "$fluentbitinstall" == TRUE ]; then
   printMessage "fluent"
   
   # INSTALL
-  hdiutil attach $config_file_directory/td-agent-4.5.0-arm64.dmg
-  sudo installer -package /Volumes/td-agent/td-agent-4.5.0.pkg -target /
-  hdiutil detach /Volumes/td-agent
+  brew install fluent-bit
 
   # CONFIGURE
   sourcefilename=$config_file_directory/td-agent-bit.conf
@@ -691,6 +670,7 @@ if [ "$telegrafinstall" == TRUE ]; then
   sudo cp "$sourcefilename" "$filename"
 
   # ENABLE AND START
+  sleep 5
   brew services start telegraf
 
 fi
