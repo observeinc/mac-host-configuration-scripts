@@ -101,6 +101,21 @@ getConfigurationFiles(){
       log "$SPACER"
     fi
 
+    if [ ! -f "$config_file_directory/fluent-bit.plist" ]; then
+      url="https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/${branch_replace}/fluent-bit.plist"
+      filename="$config_file_directory/fluent-bit.plist"
+
+      log "$SPACER"
+      log "filename = $filename"
+      log "$SPACER"
+      log "url = $url"
+      curl "$url" > "$filename"
+
+      log "$SPACER"
+      log "$filename created"
+      log "$SPACER"
+    fi
+
     if [ ! -f "$config_file_directory/osquery.flags" ]; then
       url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/osquery.flags"
       filename="$config_file_directory/osquery.flags"
@@ -206,7 +221,7 @@ printHelp(){
       log "- Optional --custom_fluentbit_config add an additional configuration file for fluentbit"
       log "***************************"
       log "### Sample command:"
-      log "\`\`\` curl https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/main/observe_configure_script.sh  | bash -s -- --customer_id YOUR_CUSTOMERID --ingest_token YOUR_DATA_STREAM_TOKEN --observe_host_name https://<YOUR_CUSTOMERID>.collect.observeinc.com/ --config_files_clean TRUE --ec2metadata TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
+      log "\`\`\` curl https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh  | zsh -s -- --customer_id YOUR_CUSTOMERID --ingest_token YOUR_DATA_STREAM_TOKEN --observe_host_name https://<YOUR_CUSTOMERID>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
       log "***************************"
 }
 
@@ -317,12 +332,14 @@ includeFilefluentAgent(){
         log "includeFilefluentAgent - $i"
         
         sudo mkdir -p /etc/fluent-bit
-        sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf;
-        sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf;
+        sudo mkdir -p /opt/homebrew/var/fluent-bit
+        sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf
+        sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
 
         case ${i} in
             linux_host)
-              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf;
+              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
+              sudo cp "$config_file_directory/fluent-bit.plist" /Library/LaunchDaemons/fluent-bit.plist
               ;;
             *)
               log "includeFiletdAgent function failed - i = $i"
@@ -641,7 +658,7 @@ if [ "$fluentbitinstall" == TRUE ]; then
   includeFiletdAgent
 
   # ENABLE AND START
-  sudo launchctl load -w /Library/LaunchDaemons/td-agent.plist
+  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
 
 fi
 
@@ -685,23 +702,23 @@ if [ "$fluentbitinstall" == TRUE ]; then
   log "$SPACER"
   log
   log "$SPACER"
-  log "td-agent-bit status"
+  log "fluent-bit status"
 
-  if sudo launchctl list td-agent | grep -c PID; then
-    log td-agent-bit is running
+  if sudo launchctl list fluent-bit | grep -c PID; then
+    log fluent-bit is running
 
-    curlObserve "td-agent-bit is running" "td-agent-bit" "SUCCESS"
+    curlObserve "fluent-bit is running" "fluent-bit" "SUCCESS"
 
   else
-    log td-agent-bit is NOT running
+    log fluent-bit is NOT running
 
-    curlObserve "td-agent-bit is NOT running" "td-agent-bit" "FAILURE"
+    curlObserve "fluent-bit is NOT running" "fluent-bit" "FAILURE"
 
-    sudo launchctl list td-agent
+    sudo launchctl list fluent-bit
   fi
 
   log "$SPACER"
-  log "Check status - sudo launchctl list td-agent"
+  log "Check status - sudo launchctl list fluent-bit"
   log "Config file location: ${td_agent_bit_filename}"
   log
 fi
