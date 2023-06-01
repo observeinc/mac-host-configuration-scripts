@@ -215,13 +215,13 @@ printHelp(){
       log "    - controls whether to delete created config_files temp directory"
       log "- Optional --datacenter defaults to REMOTE"
       log "- Optional --appgroup id supplied sets value in fluentbit config"
-      log "- Optional --branch_input branch of repository to pull scrips and config files from -Defaults to main"
+      log "- Optional --branch_input branch of repository to pull scripts and config files from -Defaults to main"
       log "- Optional --validate_endpoint of observe_hostname using customer_id and ingest_token -Defaults to TRUE"
-      log "- Optional --module to use for installs -Defaults to linux_host which installs osquery, fluentbit and telegraf"
+      log "- Optional --module to use for installs -Defaults to mac_host which installs osquery, fluentbit and telegraf"
       log "- Optional --custom_fluentbit_config add an additional configuration file for fluentbit"
       log "***************************"
       log "### Sample command:"
-      log "\`\`\` curl https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh  | zsh -s -- --customer_id YOUR_CUSTOMERID --ingest_token YOUR_DATA_STREAM_TOKEN --observe_host_name https://<YOUR_CUSTOMERID>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
+      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | zsh -s -- --customer_id YOUR_CUSTOMERID --ingest_token YOUR_DATA_STREAM_TOKEN --observe_host_name https://<YOUR_CUSTOMERID>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
       log "***************************"
 }
 
@@ -305,7 +305,7 @@ includeFiletdAgent(){
         sudo cp "$config_file_directory/parsers-observe.conf" /etc/td-agent/parsers-observe.conf;
 
         case ${i} in
-            linux_host)
+            mac_host)
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/td-agent/observe-mac-host.conf;
               ;;
             *)
@@ -337,7 +337,7 @@ includeFilefluentAgent(){
         sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
 
         case ${i} in
-            linux_host)
+            mac_host)
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
               sudo cp "$config_file_directory/fluent-bit.plist" /Library/LaunchDaemons/fluent-bit.plist
               ;;
@@ -369,8 +369,8 @@ setInstallFlags(){
         log "setInstallFlags - $i"
 
         case ${i} in
-            linux_host)
-            log "setInstallFlags linux_host flags"
+            mac_host)
+            log "setInstallFlags mac_host flags"
               osqueryinstall="TRUE"
               telegrafinstall="TRUE"
               fluentbitinstall="TRUE"
@@ -412,7 +412,7 @@ testeject="NO"
 appgroup="UNSET"
 branch_input="main"
 validate_endpoint="TRUE"
-module="linux_host"
+module="mac_host"
 osqueryinstall="FALSE"
 telegrafinstall="FALSE"
 fluentbitinstall="FALSE"
