@@ -319,7 +319,7 @@ includeFiletdAgent(){
   done
 
   #install custom config if exists
-  if ! [ -z ${custom_fluentbit_config}]
+  if ! [ -z ${custom_fluentbit_config} ]
   then
     sudo cp ${custom_fluentbit_config} /etc/td-agent/observe-custom-config.conf
   fi
