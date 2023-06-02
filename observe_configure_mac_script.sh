@@ -207,10 +207,10 @@ printHelp(){
       log "## HELP CONTENT"
       log "$SPACER"
       log "### Required inputs"
-      log "- Required --customer_id YOUR_OBSERVE_CUSTOMERID "
-      log "- Required --ingest_token YOUR_OBSERVE_DATA_STREAM_TOKEN "
+      log "- Required --customer_id OBSERVE_CUSTOMER "
+      log "- Required --ingest_token OBSERVE_TOKEN "
       log "## Optional inputs"
-      log "- Optional --observe_host_name - Defaults to https://<YOUR_OBSERVE_CUSTOMERID>.collect.observeinc.com/ "
+      log "- Optional --observe_host_name - Defaults to https://<OBSERVE_CUSTOMER>.collect.observeinc.com/ "
       log "- Optional --config_files_clean TRUE or FALSE - Defaults to FALSE "
       log "    - controls whether to delete created config_files temp directory"
       log "- Optional --datacenter defaults to REMOTE"
@@ -221,7 +221,7 @@ printHelp(){
       log "- Optional --custom_fluentbit_config add an additional configuration file for fluentbit"
       log "***************************"
       log "### Sample command:"
-      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | zsh -s -- --customer_id YOUR_CUSTOMERID --ingest_token YOUR_DATA_STREAM_TOKEN --observe_host_name https://<YOUR_CUSTOMERID>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
+      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | zsh -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name https://<OBSERVE_CUSTOMER>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
       log "***************************"
 }
 
