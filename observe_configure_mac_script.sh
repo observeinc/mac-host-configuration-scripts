@@ -221,7 +221,7 @@ printHelp(){
       log "- Optional --custom_fluentbit_config add an additional configuration file for fluentbit"
       log "***************************"
       log "### Sample command:"
-      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | zsh -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name https://<OBSERVE_CUSTOMER>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
+      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | bash -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name \"https://<OBSERVE_CUSTOMER>.collect.observeinc.com/\" --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
       log "***************************"
 }
 
