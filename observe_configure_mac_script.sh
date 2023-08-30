@@ -57,8 +57,8 @@ getConfigurationFiles(){
     fi
 
     if [ ! -f "$config_file_directory/td-agent-bit.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/td-agent-bit.conf"
-      filename="$config_file_directory/td-agent-bit.conf"
+      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/fluent-bit.conf"
+      filename="$config_file_directory/fluent-bit.conf"
 
       log "$SPACER"
       log "filename = $filename"
@@ -295,36 +295,6 @@ validateObserveHostName () {
   fi
 }
 
-includeFiletdAgent(){
-  # Process modules
-  IFS=',' read -a CONFS <<< "$module"
-  for i in "${CONFS[@]}"; do
-        log "includeFiletdAgent - $i"
-
-        sudo cp "$config_file_directory/observe-installer.conf" /etc/td-agent/observe-installer.conf;
-        sudo cp "$config_file_directory/parsers-observe.conf" /etc/td-agent/parsers-observe.conf;
-
-        case ${i} in
-            mac_host)
-              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/td-agent/observe-mac-host.conf;
-              ;;
-            *)
-              log "includeFiletdAgent function failed - i = $i"
-              log "$SPACER"
-              log "$END_OUTPUT"
-              log "$SPACER"
-              exit 1;
-              ;;
-        esac
-  done
-
-  #install custom config if exists
-  if ! [ -z ${custom_fluentbit_config} ]
-  then
-    sudo cp ${custom_fluentbit_config} /etc/td-agent/observe-custom-config.conf
-  fi
-}
-
 includeFilefluentAgent(){
   # Process modules
   IFS=',' read -a CONFS <<< "$module"
@@ -354,7 +324,7 @@ includeFilefluentAgent(){
   #install custom config if exists
   if ! [ -z ${custom_fluentbit_config}]
   then
-    sudo cp ${custom_fluentbit_config} /etc/td-agent/observe-custom-config.conf
+    sudo cp ${custom_fluentbit_config} /etc/fluent-bit/observe-custom-config.conf
   fi
 }
 
@@ -644,10 +614,10 @@ if [ "$fluentbitinstall" == TRUE ]; then
   brew install fluent-bit
 
   # CONFIGURE
-  sourcefilename=$config_file_directory/td-agent-bit.conf
-  filename=/etc/td-agent/td-agent-bit.conf
+  sourcefilename=$config_file_directory/fluent-bit.conf
+  filename=/etc/fluent-bit/fluent-bit.conf
 
-  td_agent_bit_filename=/etc/td-agent/td-agent-bit.conf
+  td_agent_bit_filename=/etc/fluent-bit/fluent-bit.conf
 
   if [ -f "$filename" ]; then
       sudo mv "$filename"  "$filename".OLD
@@ -655,7 +625,7 @@ if [ "$fluentbitinstall" == TRUE ]; then
 
   sudo cp "$sourcefilename" "$filename"
 
-  includeFiletdAgent
+  includeFilefluentAgent
 
   # ENABLE AND START
   sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist

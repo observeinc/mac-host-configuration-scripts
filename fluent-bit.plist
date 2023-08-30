@@ -5,7 +5,7 @@
   <key>KeepAlive</key>
   <true/>
   <key>Label</key>
-  <string>td-agent</string>
+  <string>fluent-bit</string>
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/fluent-bit</string>
