@@ -45,6 +45,6 @@ Run --help command for list of flags and options
 - Optional --custom_fluentbit_config add an additional configuration file for fluentbit
 ***************************
 ### Sample command:
-``` curl https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh  | zsh -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name https://<OBSERVE_CUSTOMER_ID>.collect.observeinc.com/ --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP```
+``` curl https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh  | bash -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name "https://<OBSERVE_CUSTOMER_ID>.collect.observeinc.com/" --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP```
 ***************************
 
