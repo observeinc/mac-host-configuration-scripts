@@ -339,7 +339,9 @@ includeFilefluentAgent(){
         case ${i} in
             mac_host)
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
-              sudo cp "$config_file_directory/fluent-bit.plist" /Library/LaunchDaemons/fluent-bit.plist
+              local daemon_directory="/Library/LaunchDaemons"
+              [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
+              sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
               ;;
             *)
               log "includeFiletdAgent function failed - i = $i"
