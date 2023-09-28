@@ -180,7 +180,7 @@ SYS_ARCH=$(uname -m)
 # homebrew package manager makes it easier to validate packages and update them in the future.
 # A third party system manager can be used to deploy packages and config files instead.
 BREW=$(which brew)
-if [ $BREW != "/opt/homebrew/bin/brew" ]; then
+if [ $BREW != "/opt/homebrew/bin/brew" ] && [ $BREW != "/usr/local/bin/brew" ]; then
     echo "This script is only supported with the homebrew package manager"
     exit
 fi
