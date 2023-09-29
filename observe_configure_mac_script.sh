@@ -180,10 +180,16 @@ SYS_ARCH=$(uname -m)
 # homebrew package manager makes it easier to validate packages and update them in the future.
 # A third party system manager can be used to deploy packages and config files instead.
 BREW=$(which brew)
-if [ $BREW != "/opt/homebrew/bin/brew" ]; then
+if [ $BREW != "/opt/homebrew/bin/brew" ] && [ $BREW != "/usr/local/bin/brew" ]; then
     echo "This script is only supported with the homebrew package manager"
     exit
+elif [ $BREW = "/opt/homebrew/bin/brew" ]; then
+    BASE_BREW="/opt/homebrew/"
+else
+    BASE_BREW="/usr/local"
 fi
+
+log "BASE_BREW=$BASE_BREW"
 
 # used for terminal output
 generateSpacer(){
@@ -302,7 +308,7 @@ includeFilefluentAgent(){
         log "includeFilefluentAgent - $i"
         
         sudo mkdir -p /etc/fluent-bit
-        sudo mkdir -p /opt/homebrew/var/fluent-bit
+        sudo mkdir -p $BASE_BREW/var/fluent-bit
         sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf
         sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
 
@@ -311,6 +317,9 @@ includeFilefluentAgent(){
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
+              if [ $BASE_BREW = "/usr/local" ]; then
+                LC_ALL=C sed -i '' 's|/opt/homebrew|/usr/local|g' $config_file_directory/fluent-bit.plist
+              fi
               sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
               ;;
             *)
@@ -645,11 +654,11 @@ if [ "$telegrafinstall" == TRUE ]; then
   brew install telegraf
 
   # CONFIGURE
-  sudo mkdir -p /opt/homebrew/etc
+  sudo mkdir -p  $BASE_BREW/etc
   sourcefilename=$config_file_directory/telegraf.conf
-  filename=/opt/homebrew/etc/telegraf.conf
+  filename=$BASE_BREW/etc/telegraf.conf
 
-  telegraf_conf_filename=/opt/homebrew/etc/telegraf.conf
+  telegraf_conf_filename=$BASE_BREW/etc/telegraf.conf
 
   if [ -f "$filename" ]
   then
