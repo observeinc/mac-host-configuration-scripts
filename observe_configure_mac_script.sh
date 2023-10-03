@@ -641,10 +641,14 @@ if [ "$fluentbitinstall" == TRUE ]; then
 
   includeFilefluentAgent
 
-  # ENABLE AND START
   sudo launchctl enable system/fluent-bit
-  sudo launchctl kickstart -kp system/fluent-bit
-  #sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+  # Check if the previous commands failed (exit status not equal to 0)
+  if [ $? -ne 0 ]; then
+    # Previous commands failed, so load the service
+    sudo launchctl load -w /Library/LaunchDaemons/com.fluentbit.plist
+  else
+    sudo launchctl kickstart -kp system/fluent-bit
+  fi
 
 fi
 
