@@ -644,7 +644,7 @@ if [ "$fluentbitinstall" == TRUE ]; then
   # ENABLE AND START
   sudo launchctl enable system/fluent-bit
   sudo launchctl kickstart -kp system/fluent-bit
-  #sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
 
 fi
 
