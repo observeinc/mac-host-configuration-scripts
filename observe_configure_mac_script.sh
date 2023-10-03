@@ -634,12 +634,17 @@ if [ "$fluentbitinstall" == TRUE ]; then
       sudo mv "$filename"  "$filename".OLD
   fi
 
+  if [ ! -d "/etc/fluent-bit" ]; then
+      sudo mkdir /etc/fluent-bit
+  fi
   sudo cp "$sourcefilename" "$filename"
 
   includeFilefluentAgent
 
   # ENABLE AND START
-  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+  sudo launchctl enable system/fluent-bit
+  sudo launchctl kickstart -kp system/fluent-bit
+  #sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
 
 fi
 
