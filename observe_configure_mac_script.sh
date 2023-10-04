@@ -196,18 +196,6 @@ generateSpacer(){
   echo "###########################################"
 }
 
-curlObserve(){
-  local message="$1"
-  local path_suffix="$2"
-  local result="$3"
-
-  curl https://"${OBSERVE_ENVIRONMENT}"/v1/http/script_validation/"${path_suffix}" \
-  -H "Authorization: Bearer ${ingest_token}" \
-  -H "Content-type: application/json" \
-  -d "{\"data\": {\"datacenter\": \"${DEFAULT_OBSERVE_DATA_CENTER}\", \"host\": \"${DEFAULT_OBSERVE_HOSTNAME}\",\"result\": \"${result}\",\"message\": \"${message}\", \"os\": \"${OS}\" }}"
-
-}
-
 printHelp(){
       log "$SPACER"
       log "## HELP CONTENT"
@@ -501,16 +489,16 @@ if [ "$validate_endpoint" == TRUE ]; then
     log "Validate customer_id / ingest token ..."
     log "$SPACER"
     log
-
-    curl_endpoint=$(curl https://"${OBSERVE_ENVIRONMENT}"/v1/http/script_validation \
+    
+    # Send the HEAD request so we aren't posting data
+    curl_endpoint=$(curl -I https://"${OBSERVE_ENVIRONMENT}"/ \
     -H "Authorization: Bearer ${ingest_token}" \
-    -H "Content-type: application/json" \
-    -d "{\"data\": {  \"datacenter\": \"${DEFAULT_OBSERVE_DATA_CENTER}\",\"host\": \"${DEFAULT_OBSERVE_HOSTNAME}\",\"message\": \"validating customer id and token\", \"os\": \"${OS}\", \"result\": \"SUCCESS\",  \"script_run\": \"${DEFAULT_OBSERVE_DATA_CENTER}\" ,  \"OBSERVE_TEST_RUN_KEY\": \"${OBSERVE_TEST_RUN_KEY}\"}}")
+    -H "Content-type: application/json")
 
-    # On a Mac... grep -P won't work
-    validate_endpoint_result=$(echo "$curl_endpoint" | grep -c -o -e '"ok"\:true')
+    # Extract HTTP response code
+    http_code=$(echo "$curl_endpoint" | grep -i -m 1 -o -E 'HTTP/[0-9.]+ [0-9]+' | awk '{print $2}')
 
-    if ((validate_endpoint_result != 1 )); then
+    if ((http_code != "200" )); then
         log "$SPACER"
         log "$validate_endpoint_result"
         log "Endpoint Validation failed with:"
@@ -691,14 +679,8 @@ if [ "$osqueryinstall" == TRUE ]; then
 
   if sudo osqueryctl status | grep -c -e "is running"; then
     log osqueryd is running
-
-  curlObserve "osqueryd is running" "osqueryd" "SUCCESS"
-
   else
     log osqueryd is NOT running
-
-    curlObserve "osqueryd is NOT running" "osqueryd" "FAILURE"
-
     sudo osqueryctl status
   fi
   log "$SPACER"
@@ -717,14 +699,8 @@ if [ "$telegrafinstall" == TRUE ]; then
 
     if brew services info telegraf | grep -c "Running: true"; then
       log telegraf is running
-
-      curlObserve "telegraf is running" "telegraf" "SUCCESS"
-
     else
       log telegraf is NOT running
-
-      curlObserve "telegraf is NOT running" "telegraf" "FAILURE"
-
       brew services info telegraf
     fi
     log "$SPACER"
@@ -754,14 +730,8 @@ if [ "$fluentbitinstall" == TRUE ]; then
 
   if sudo launchctl list fluent-bit | grep -c PID; then
     log fluent-bit is running
-
-    curlObserve "fluent-bit is running" "fluent-bit" "SUCCESS"
-
   else
     log fluent-bit is NOT running
-
-    curlObserve "fluent-bit is NOT running" "fluent-bit" "FAILURE"
-
     sudo launchctl list fluent-bit
   fi
 
