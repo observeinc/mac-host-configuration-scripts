@@ -583,7 +583,8 @@ if [ "$osqueryinstall" == TRUE ]; then
   printMessage "osquery"
 
   # INSTALL
-  brew install --cask osquery
+  brew install --cask osquery &
+  wait
 
   # CONFIGURE
   sudo mkdir -p /var/osquery/
@@ -620,9 +621,10 @@ fi
 if [ "$fluentbitinstall" == TRUE ]; then
 
   printMessage "fluent"
-  
+
   # INSTALL
-  brew install fluent-bit
+  brew install fluent-bit &
+  wait
 
   # CONFIGURE
   sourcefilename=$config_file_directory/fluent-bit.conf
@@ -641,16 +643,13 @@ if [ "$fluentbitinstall" == TRUE ]; then
 
   includeFilefluentAgent
 
-  # ENABLE AND START
-  sudo launchctl enable system/fluent-bit
+  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
   # Check if the previous commands failed (exit status not equal to 0)
   if [ $? -ne 0 ]; then
     # Previous commands failed, so load the service
-    sudo launchctl load -w /Library/LaunchDaemons/com.fluentbit.plist
-  else
+    sudo launchctl enable system/fluent-bit
     sudo launchctl kickstart -kp system/fluent-bit
   fi
-
 fi
 
 #####################################
@@ -661,7 +660,8 @@ if [ "$telegrafinstall" == TRUE ]; then
   printMessage "telegraf"
 
   # INSTALL
-  brew install telegraf
+  brew install telegraf &
+  wait
 
   # CONFIGURE
   sudo mkdir -p  $BASE_BREW/etc
@@ -686,36 +686,6 @@ fi
 ################################################################################################
 # VERIFY INSTALLATION
 ################################################################################################
-
-if [ "$fluentbitinstall" == TRUE ]; then
-  log "$SPACER"
-  log "Check Services"
-  log "$SPACER"
-  log
-  log "$SPACER"
-  log "fluent-bit status"
-
-  if sudo launchctl list fluent-bit | grep -c PID; then
-    log fluent-bit is running
-
-    curlObserve "fluent-bit is running" "fluent-bit" "SUCCESS"
-
-  else
-    log fluent-bit is NOT running
-
-    curlObserve "fluent-bit is NOT running" "fluent-bit" "FAILURE"
-
-    sudo launchctl list fluent-bit
-  fi
-
-  log "$SPACER"
-  log "Check status - sudo launchctl list fluent-bit"
-  log "Config file location: ${td_agent_bit_filename}"
-  log
-fi
-
-log "$SPACER"
-
 if [ "$osqueryinstall" == TRUE ]; then
   log "osqueryd status"
 
@@ -772,6 +742,34 @@ if [ "$config_files_clean" == TRUE ]; then
   removeConfigDirectory
 fi
 
+log "$SPACER"
+
+if [ "$fluentbitinstall" == TRUE ]; then
+  log "$SPACER"
+  log "Check Services"
+  log "$SPACER"
+  log
+  log "$SPACER"
+  log "fluent-bit status"
+
+  if sudo launchctl list fluent-bit | grep -c PID; then
+    log fluent-bit is running
+
+    curlObserve "fluent-bit is running" "fluent-bit" "SUCCESS"
+
+  else
+    log fluent-bit is NOT running
+
+    curlObserve "fluent-bit is NOT running" "fluent-bit" "FAILURE"
+
+    sudo launchctl list fluent-bit
+  fi
+
+  log "$SPACER"
+  log "Check status - sudo launchctl list fluent-bit"
+  log "Config file location: ${td_agent_bit_filename}"
+  log
+fi
 
 #####################################
 # BASELINEINSTALL - END
