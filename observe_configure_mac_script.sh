@@ -1,7 +1,8 @@
 #!/bin/bash
 END_OUTPUT="END_OF_OUTPUT"
+STARTING_PROMPT="This script required sudo privileges, you may be prompted to enter your local user password:"
 
-cd ~ || exit && echo "$SPACER $END_OUTPUT $SPACER"
+cd ~ || exit  && echo "$SPACER $STARTING_PROMPT $SPACER"
 
 config_file_directory="$HOME/observe_config_files"
 
