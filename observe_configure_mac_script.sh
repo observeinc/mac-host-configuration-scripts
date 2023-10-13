@@ -181,13 +181,11 @@ SYS_ARCH=$(uname -m)
 # homebrew package manager makes it easier to validate packages and update them in the future.
 # A third party system manager can be used to deploy packages and config files instead.
 BREW=$(which brew)
-if [ $BREW != "/opt/homebrew/bin/brew" ] && [ $BREW != "/usr/local/bin/brew" ]; then
+if [ -z "$BREW" ]; then
     echo "This script is only supported with the homebrew package manager"
     exit
-elif [ $BREW = "/opt/homebrew/bin/brew" ]; then
-    BASE_BREW="/opt/homebrew/"
 else
-    BASE_BREW="/usr/local"
+    BASE_BREW="${BREW%%/bin/brew}"
 fi
 
 log "BASE_BREW=$BASE_BREW"
@@ -305,8 +303,9 @@ includeFilefluentAgent(){
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
-              if [ $BASE_BREW = "/usr/local" ]; then
-                LC_ALL=C sed -i '' 's|/opt/homebrew|/usr/local|g' $config_file_directory/fluent-bit.plist
+              if [ $BASE_BREW != "/opt/homebrew" ]; then
+                LC_ALL=C sed -i '' "s|/opt/homebrew|$BASE_BREW|g" "$config_file_directory/fluent-bit.plist"
+                
               fi
               sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
               ;;
