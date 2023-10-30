@@ -662,6 +662,9 @@ if [ "$telegrafinstall" == TRUE ]; then
 
   sudo cp "$sourcefilename" "$filename"
 
+  LC_ALL=C  sed -i '' 's/\[\[inputs\.kernel\]\]/#[[inputs.kernel]]/'  $filename
+     
+
   # ENABLE AND START
   sleep 5
   brew services start telegraf
