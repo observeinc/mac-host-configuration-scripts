@@ -10,7 +10,7 @@
   <array>
     <string>/opt/homebrew/bin/fluent-bit</string>
     <string>-c</string>
-    <string>/etc/fluent-bit/fluent-bit.conf</string>
+    <string>/opt/homebrew/etc/fluent-bit/fluent-bit.conf</string>
     <string>-l</string>
     <string>/opt/homebrew/var/fluent-bit/fluent-bit.log</string>
   </array>

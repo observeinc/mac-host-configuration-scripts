@@ -1,6 +1,6 @@
 #!/bin/bash
 END_OUTPUT="END_OF_OUTPUT"
-STARTING_PROMPT="This script required sudo privileges, you may be prompted to enter your local user password:"
+STARTING_PROMPT="This script required sudo privileges because MacOS requires it to install services, you may be prompted to enter your local user password:"
 
 cd ~ || exit  && echo "$SPACER $STARTING_PROMPT $SPACER"
 
@@ -295,14 +295,14 @@ includeFilefluentAgent(){
   for i in "${CONFS[@]}"; do
         log "includeFilefluentAgent - $i"
         
-        sudo mkdir -p /etc/fluent-bit
+        sudo mkdir -p $BASE_BREW/etc/fluent-bit
         sudo mkdir -p $BASE_BREW/var/fluent-bit
-        sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf
-        sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
+        sudo cp "$config_file_directory/observe-installer.conf" $BASE_BREW/etc/fluent-bit/observe-installer.conf
+        sudo cp "$config_file_directory/parsers-observe.conf" $BASE_BREW/etc/fluent-bit/parsers-observe.conf
 
         case ${i} in
             mac_host)
-              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
+              sudo cp "$config_file_directory/observe-mac-host.conf" $BASE_BREW/etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
               if [ $BASE_BREW = "/usr/local" ]; then
@@ -323,7 +323,7 @@ includeFilefluentAgent(){
   #install custom config if exists
   if ! [ -z ${custom_fluentbit_config}]
   then
-    sudo cp ${custom_fluentbit_config} /etc/fluent-bit/observe-custom-config.conf
+    sudo cp ${custom_fluentbit_config} $BASE_BREW/etc/fluent-bit/observe-custom-config.conf
   fi
 }
 
@@ -613,16 +613,16 @@ if [ "$fluentbitinstall" == TRUE ]; then
 
   # CONFIGURE
   sourcefilename=$config_file_directory/fluent-bit.conf
-  filename=/etc/fluent-bit/fluent-bit.conf
+  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
-  td_agent_bit_filename=/etc/fluent-bit/fluent-bit.conf
+  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
   if [ -f "$filename" ]; then
       sudo mv "$filename"  "$filename".OLD
   fi
 
-  if [ ! -d "/etc/fluent-bit" ]; then
-      sudo mkdir /etc/fluent-bit
+  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
+      sudo mkdir $BASE_BREW/etc/fluent-bit
   fi
   sudo cp "$sourcefilename" "$filename"
 
