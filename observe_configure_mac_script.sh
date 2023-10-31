@@ -185,7 +185,7 @@ if [ $BREW != "/opt/homebrew/bin/brew" ] && [ $BREW != "/usr/local/bin/brew" ]; 
     echo "This script is only supported with the homebrew package manager"
     exit
 elif [ $BREW = "/opt/homebrew/bin/brew" ]; then
-    BASE_BREW="/opt/homebrew/"
+    BASE_BREW="/opt/homebrew"
 else
     BASE_BREW="/usr/local"
 fi
@@ -305,9 +305,6 @@ includeFilefluentAgent(){
               sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
-              if [ $BASE_BREW = "/usr/local" ]; then
-                LC_ALL=C sed -i '' 's|/opt/homebrew|/usr/local|g' $config_file_directory/fluent-bit.plist
-              fi
               sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
               ;;
             *)
@@ -544,6 +541,8 @@ LC_ALL=C sed -i '' -e "s/REPLACE_WITH_CUSTOMER_INGEST_TOKEN/${ingest_token}/g" .
 
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_OBSERVE_ENVIRONMENT/${OBSERVE_ENVIRONMENT}/g" ./*
 
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_BASE_BREW/${BASE_BREW}/g" ./*
+
 if [ "$appgroup" != UNSET ]; then
     LC_ALL=C sed -i '' -e "s/#REPLACE_WITH_OBSERVE_APP_GROUP_OPTION/Record appgroup ${appgroup}/g" ./*
 fi
@@ -612,17 +611,18 @@ if [ "$fluentbitinstall" == TRUE ]; then
   wait
 
   # CONFIGURE
+  sudo mkdir -p $BASE_BREW/etc/fluent-bit
   sourcefilename=$config_file_directory/fluent-bit.conf
-  filename=/etc/fluent-bit/fluent-bit.conf
+  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
-  td_agent_bit_filename=/etc/fluent-bit/fluent-bit.conf
+  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
   if [ -f "$filename" ]; then
       sudo mv "$filename"  "$filename".OLD
   fi
 
-  if [ ! -d "/etc/fluent-bit" ]; then
-      sudo mkdir /etc/fluent-bit
+  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
+      sudo mkdir $BASE_BREW/etc/fluent-bit
   fi
   sudo cp "$sourcefilename" "$filename"
 
