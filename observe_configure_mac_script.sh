@@ -295,14 +295,14 @@ includeFilefluentAgent(){
   for i in "${CONFS[@]}"; do
         log "includeFilefluentAgent - $i"
         
-        sudo mkdir -p /etc/fluent-bit
+        sudo mkdir -p $BASE_BREW/etc/fluent-bit
         sudo mkdir -p $BASE_BREW/var/fluent-bit
-        sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf
-        sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
+        sudo cp "$config_file_directory/observe-installer.conf" $BASE_BREW/etc/fluent-bit/observe-installer.conf
+        sudo cp "$config_file_directory/parsers-observe.conf" $BASE_BREW/etc/fluent-bit/parsers-observe.conf
 
         case ${i} in
             mac_host)
-              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
+              sudo cp "$config_file_directory/observe-mac-host.conf" $BASE_BREW/etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
               sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
@@ -320,7 +320,7 @@ includeFilefluentAgent(){
   #install custom config if exists
   if ! [ -z ${custom_fluentbit_config}]
   then
-    sudo cp ${custom_fluentbit_config} /etc/fluent-bit/observe-custom-config.conf
+    sudo cp ${custom_fluentbit_config} $BASE_BREW/etc/fluent-bit/observe-custom-config.conf
   fi
 }
 
