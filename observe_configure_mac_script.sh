@@ -185,7 +185,7 @@ if [ $BREW != "/opt/homebrew/bin/brew" ] && [ $BREW != "/usr/local/bin/brew" ]; 
     echo "This script is only supported with the homebrew package manager"
     exit
 elif [ $BREW = "/opt/homebrew/bin/brew" ]; then
-    BASE_BREW="/opt/homebrew/"
+    BASE_BREW="/opt/homebrew"
 else
     BASE_BREW="/usr/local"
 fi
@@ -295,19 +295,16 @@ includeFilefluentAgent(){
   for i in "${CONFS[@]}"; do
         log "includeFilefluentAgent - $i"
         
-        sudo mkdir -p /etc/fluent-bit
+        sudo mkdir -p $BASE_BREW/etc/fluent-bit
         sudo mkdir -p $BASE_BREW/var/fluent-bit
-        sudo cp "$config_file_directory/observe-installer.conf" /etc/fluent-bit/observe-installer.conf
-        sudo cp "$config_file_directory/parsers-observe.conf" /etc/fluent-bit/parsers-observe.conf
+        sudo cp "$config_file_directory/observe-installer.conf" $BASE_BREW/etc/fluent-bit/observe-installer.conf
+        sudo cp "$config_file_directory/parsers-observe.conf" $BASE_BREW/etc/fluent-bit/parsers-observe.conf
 
         case ${i} in
             mac_host)
-              sudo cp "$config_file_directory/observe-mac-host.conf" /etc/fluent-bit/observe-mac-host.conf
+              sudo cp "$config_file_directory/observe-mac-host.conf" $BASE_BREW/etc/fluent-bit/observe-mac-host.conf
               local daemon_directory="/Library/LaunchDaemons"
               [ -d "$daemon_directory" ] || sudo mkdir "$daemon_directory"
-              if [ $BASE_BREW = "/usr/local" ]; then
-                LC_ALL=C sed -i '' 's|/opt/homebrew|/usr/local|g' $config_file_directory/fluent-bit.plist
-              fi
               sudo cp "$config_file_directory/fluent-bit.plist" $daemon_directory/fluent-bit.plist
               ;;
             *)
@@ -323,7 +320,7 @@ includeFilefluentAgent(){
   #install custom config if exists
   if ! [ -z ${custom_fluentbit_config}]
   then
-    sudo cp ${custom_fluentbit_config} /etc/fluent-bit/observe-custom-config.conf
+    sudo cp ${custom_fluentbit_config} $BASE_BREW/etc/fluent-bit/observe-custom-config.conf
   fi
 }
 
@@ -525,6 +522,8 @@ log
 log "    Hostname:  $DEFAULT_OBSERVE_HOSTNAME"
 log
 log "    Customer ID:  $customer_id"
+log
+log "    Homebrew Root:  $BASE_BREW"
 
 testEject "${testeject}" "EJECT1"
 
@@ -535,6 +534,10 @@ getConfigurationFiles "$branch_input"
 log "$SPACER"
 
 cd "$config_file_directory" || (exit && log "$SPACER CONFIG FILE DIRECTORY PROBLEM - $(pwd) - $config_file_directory - $END_OUTPUT $SPACER")
+
+# Escape the BASE_BREW path so the slashes don't mess up sed
+BREW_BASE= LC_ALL=C sed -e 's;/;\\/;g' $BASE_BREW
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_BASE_BREW/${BREW_BASE}/g" ./*
 
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_DATACENTER/${DEFAULT_OBSERVE_DATA_CENTER}/g" ./*
 
@@ -612,17 +615,18 @@ if [ "$fluentbitinstall" == TRUE ]; then
   wait
 
   # CONFIGURE
+  sudo mkdir -p $BASE_BREW/etc/fluent-bit
   sourcefilename=$config_file_directory/fluent-bit.conf
-  filename=/etc/fluent-bit/fluent-bit.conf
+  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
-  td_agent_bit_filename=/etc/fluent-bit/fluent-bit.conf
+  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
 
   if [ -f "$filename" ]; then
       sudo mv "$filename"  "$filename".OLD
   fi
 
-  if [ ! -d "/etc/fluent-bit" ]; then
-      sudo mkdir /etc/fluent-bit
+  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
+      sudo mkdir $BASE_BREW/etc/fluent-bit
   fi
   sudo cp "$sourcefilename" "$filename"
 

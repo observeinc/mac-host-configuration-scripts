@@ -8,15 +8,15 @@
   <string>fluent-bit</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/opt/homebrew/bin/fluent-bit</string>
+    <string>REPLACE_WITH_BASE_BREW/bin/fluent-bit</string>
     <string>-c</string>
-    <string>/etc/fluent-bit/fluent-bit.conf</string>
+    <string>REPLACE_WITH_BASE_BREW/etc/fluent-bit/fluent-bit.conf</string>
     <string>-l</string>
-    <string>/opt/homebrew/var/fluent-bit/fluent-bit.log</string>
+    <string>REPLACE_WITH_BASE_BREW/var/fluent-bit/fluent-bit.log</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
   <key>WorkingDirectory</key>
-  <string>/opt/homebrew/var/fluent-bit</string>
+  <string>REPLACE_WITH_BASE_BREW/var/fluent-bit</string>
 </dict>
 </plist>
