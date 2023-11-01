@@ -522,6 +522,8 @@ log
 log "    Hostname:  $DEFAULT_OBSERVE_HOSTNAME"
 log
 log "    Customer ID:  $customer_id"
+log
+log "    Homebrew Root:  $BASE_BREW"
 
 testEject "${testeject}" "EJECT1"
 
@@ -533,6 +535,10 @@ log "$SPACER"
 
 cd "$config_file_directory" || (exit && log "$SPACER CONFIG FILE DIRECTORY PROBLEM - $(pwd) - $config_file_directory - $END_OUTPUT $SPACER")
 
+# Escape the BASE_BREW path so the slashes don't mess up sed
+BREW_BASE= LC_ALL=C sed -e 's;/;\\/;g' $BASE_BREW
+LC_ALL=C sed -i '' -e "s/REPLACE_WITH_BASE_BREW/${BREW_BASE}/g" ./*
+
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_DATACENTER/${DEFAULT_OBSERVE_DATA_CENTER}/g" ./*
 
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_HOSTNAME/${DEFAULT_OBSERVE_HOSTNAME}/g" ./*
@@ -540,8 +546,6 @@ LC_ALL=C sed -i '' -e "s/REPLACE_WITH_HOSTNAME/${DEFAULT_OBSERVE_HOSTNAME}/g" ./
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_CUSTOMER_INGEST_TOKEN/${ingest_token}/g" ./*
 
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_OBSERVE_ENVIRONMENT/${OBSERVE_ENVIRONMENT}/g" ./*
-
-LC_ALL=C sed -i '' -e "s/REPLACE_WITH_BASE_BREW/${BASE_BREW}/g" ./*
 
 if [ "$appgroup" != UNSET ]; then
     LC_ALL=C sed -i '' -e "s/#REPLACE_WITH_OBSERVE_APP_GROUP_OPTION/Record appgroup ${appgroup}/g" ./*
