@@ -11,6 +11,18 @@ log ()
     echo "`date` $1" | sudo tee -a "/tmp/observe-install.log"
 }
 
+download_file() {
+  local url="$1"
+  local filename="$2"
+
+  if [ ! -f "$filename" ]; then
+    log "filename = $filename"
+    log "url = $url"
+    curl "$url" > "$filename"
+    log "$filename created"
+  fi
+}
+
 getConfigurationFiles(){
     local branch_replace="$1"
     local SPACER
@@ -27,141 +39,13 @@ getConfigurationFiles(){
       log "$SPACER"
     fi
 
-    if [ ! -f "$config_file_directory/osquery.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/osquery.conf"
-      filename="$config_file_directory/osquery.conf"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/osquery.conf" "$config_file_directory/osquery.conf"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/telegraf.conf" "$config_file_directory/telegraf.conf"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/fluent-bit.conf" "$config_file_directory/fluent-bit.conf"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/osquery.flags" "$config_file_directory/osquery.flags"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/observe-installer.conf" "$config_file_directory/observe-installer.conf"
+  download_file "https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_input}/config_files/parsers-observe.conf" "$config_file_directory/parsers-observe.conf"
 
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/telegraf.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/telegraf.conf"
-      filename="$config_file_directory/telegraf.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/td-agent-bit.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/fluent-bit.conf"
-      filename="$config_file_directory/fluent-bit.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/fluent-bit.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/fluent-bit.conf"
-      filename="$config_file_directory/fluent-bit.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/observe-mac-host.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/${branch_replace}/observe-mac-host.conf"
-      filename="$config_file_directory/observe-mac-host.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/fluent-bit.plist" ]; then
-      url="https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/${branch_replace}/fluent-bit.plist"
-      filename="$config_file_directory/fluent-bit.plist"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/osquery.flags" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/osquery.flags"
-      filename="$config_file_directory/osquery.flags"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/observe-installer.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/observe-installer.conf"
-      filename="$config_file_directory/observe-installer.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-
-    if [ ! -f "$config_file_directory/parsers-observe.conf" ]; then
-      url="https://raw.githubusercontent.com/observeinc/linux-host-configuration-scripts/${branch_replace}/config_files/parsers-observe.conf"
-      filename="$config_file_directory/parsers-observe.conf"
-
-      log "$SPACER"
-      log "filename = $filename"
-      log "$SPACER"
-      log "url = $url"
-      curl "$url" > "$filename"
-
-      log "$SPACER"
-      log "$filename created"
-      log "$SPACER"
-    fi
-  
 }
 
 generateTestKey(){
@@ -359,6 +243,112 @@ printMessage(){
   log "$message"
   log "$SPACER"
   log
+}
+
+is_agent_installed() {
+  local agent_name=$1
+  brew list "$agent_name" &>/dev/null
+}
+
+confirmation() {
+  local question=$1
+  read -p "$question (y/n)?" choice
+  case "$choice" in 
+    y|Y ) return 0;;
+    n|N ) return 1;;
+    * ) return 1;;
+  esac
+}
+
+restart_agent(){
+   local agent_name=$1
+
+   case $agent_name in
+   osquery)
+    sudo osqueryctl restart
+    ;;
+   fluent-bit)
+    sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+
+    # Check if the previous commands failed (exit status not equal to 0)
+    if [ $? -ne 0 ]; then
+      # Previous commands failed, so restart the service
+      sudo launchctl kickstart -kp system/fluent-bit
+    else
+      # Agent was already installed, restart the service
+      sudo launchctl kickstart -k system/fluent-bit
+    fi
+    ;;
+    telegraf)
+    brew services restart telegraf
+    ;;
+    esac
+}
+
+start_agent(){
+   local agent_name=$1
+
+   case $agent_name in
+   osquery)
+    sudo osqueryctl start
+    ;;
+   fluent-bit)
+    if is_agent_installed "fluent-bit"; then
+      sudo launchctl unload /Library/LaunchDaemons/fluent-bit.plist
+      sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+      if [ $? -ne 0 ]; then
+      # Previous commands failed, so load the service
+      sudo launchctl enable system/fluent-bit
+      sudo launchctl kickstart -kp system/fluent-bit
+      fi
+    fi
+    ;;
+    telegraf)
+    brew services start telegraf
+    ;;
+    esac
+}
+
+install_agent() {
+  local agent_name=$1
+
+  # Check if the agent is installed using brew
+  if is_agent_installed "$agent_name"; then
+    echo "${agent_name} already installed."
+  else
+    # INSTALL
+    brew install "$agent_name" &
+  fi
+}
+
+configure_agent() {
+  local agent_name=$1
+  local source_filename=$2
+  local target_filename=$3
+
+  if is_agent_installed "$agent_name"; then
+    if confirmation "Do you want to overwrite the configuration for ${agent_name}?"; then
+      echo "Overwriting configuration..."
+      sudo cp "$source_filename" "$target_filename"
+      restart_agent $agent_name
+    else
+      echo "Skipping configuration of ${agent_name}"
+      return
+    fi
+  else
+    sudo cp "$source_filename" "$target_filename"
+    start_agent $agent_name
+  fi
+}
+
+install_and_configure() {
+  local agent_name=$1
+  local source_filename=$2
+  local target_filename=$3
+
+  install_agent "$agent_name"
+  wait
+  configure_agent "$agent_name" "$source_filename" "$target_filename"
 }
 
 SPACER=$(generateSpacer)
@@ -567,114 +557,58 @@ log "Installation beginning"
 # osquery
 #####################################
 if [ "$osqueryinstall" == TRUE ]; then
-
-  printMessage "osquery"
-
-  # INSTALL
-  brew install --cask osquery &
-  wait
-
-  # CONFIGURE
-  sudo mkdir -p /var/osquery/
-  sourcefilename=$config_file_directory/osquery.conf
-  filename=/var/osquery/osquery.conf
-  osquery_conf_filename=/var/osquery/osquery.conf
-
-  if [ -f "$filename" ]
-  then
-      sudo mv "$filename"  "$filename".OLD
-  fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  sourcefilename=$config_file_directory/osquery.flags
-  filename=/var/osquery/osquery.flags
-  osquery_flags_filename=/var/osquery/osquery.flags
-
-  if [ -f "$filename" ]
-  then
-      sudo mv "$filename"  "$filename".OLD
-  fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  # ENABLE AND START
-  sudo osqueryctl start 
-
+  osquery_sourcefile="$config_file_directory/osquery.conf"
+  osquery_targetfile="/var/osquery/osquery.conf"
+  install_and_configure "osquery" "$osquery_sourcefile" "$osquery_targetfile"
+  # if is_agent_installed "osquery"; then
+  #   sudo osqueryctl restart
+  # else
+  #    sudo osqueryctl start
+  # fi
 fi
 
 #####################################
-# fluent
+# fluent-bit
 #####################################
 if [ "$fluentbitinstall" == TRUE ]; then
-
-  printMessage "fluent"
-
-  # INSTALL
-  brew install fluent-bit &
-  wait
-
-  # CONFIGURE
-  sudo mkdir -p $BASE_BREW/etc/fluent-bit
-  sourcefilename=$config_file_directory/fluent-bit.conf
-  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
-
-  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
-
-  if [ -f "$filename" ]; then
-      sudo mv "$filename"  "$filename".OLD
-  fi
-
-  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
-      sudo mkdir $BASE_BREW/etc/fluent-bit
-  fi
-  sudo cp "$sourcefilename" "$filename"
-
-  includeFilefluentAgent
-
-  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
-  # Check if the previous commands failed (exit status not equal to 0)
-  if [ $? -ne 0 ]; then
-    # Previous commands failed, so load the service
-    sudo launchctl enable system/fluent-bit
-    sudo launchctl kickstart -kp system/fluent-bit
-  fi
+  fluentbit_sourcefile="$config_file_directory/fluent-bit.conf"
+  fluentbit_targetfile="$BASE_BREW/etc/fluent-bit/fluent-bit.conf"
+  install_and_configure "fluent-bit" "$fluentbit_sourcefile" "$fluentbit_targetfile"
+  # if is_agent_installed "fluent-bit"; then
+  #   sudo launchctl unload /Library/LaunchDaemons/fluent-bit.plist
+  #   sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+  #   if [ $? -ne 0 ]; then
+  #   # Previous commands failed, so load the service
+  #   sudo launchctl enable system/fluent-bit
+  #   sudo launchctl kickstart -kp system/fluent-bit
+  #   fi
+  # fi
+  # else
+  # sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
+  # # Check if the previous commands failed (exit status not equal to 0)
+  # if [ $? -ne 0 ]; then
+  #   # Previous commands failed, so load the service
+  #   sudo launchctl enable system/fluent-bit
+  #   sudo launchctl kickstart -kp system/fluent-bit
+  # fi
 fi
 
 #####################################
 # telegraf
 #####################################
 if [ "$telegrafinstall" == TRUE ]; then
-
-  printMessage "telegraf"
-
-  # INSTALL
-  brew install telegraf &
-  wait
-
-  # CONFIGURE
-  sudo mkdir -p  $BASE_BREW/etc
-  sourcefilename=$config_file_directory/telegraf.conf
-  filename=$BASE_BREW/etc/telegraf.conf
-
-  telegraf_conf_filename=$BASE_BREW/etc/telegraf.conf
-
-  if [ -f "$filename" ]
-  then
-    sudo mv "$filename"  "$filename".OLD
-  fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  LC_ALL=C  sed -i '' 's/\[\[inputs\.kernel\]\]/#[[inputs.kernel]]/'  $filename
-     
-
-  # ENABLE AND START
+  telegraf_sourcefile="$config_file_directory/telegraf.conf"
+  telegraf_targetfile="$BASE_BREW/etc/telegraf.conf"
+  install_and_configure "telegraf" "$telegraf_sourcefile" "$telegraf_targetfile"
+  # Additional configuration for telegraf can go here
+  LC_ALL=C sed -i '' 's/\[\[inputs\.kernel\]\]/#[[inputs.kernel]]/' "$telegraf_targetfile"
   sleep 5
-  brew services start telegraf
-
+  if is_agent_installed "telegraf"; then
+    brew services restart telegraf
+  else
+     brew services start telegraf
+  fi
 fi
-
 ################################################################################################
 # VERIFY INSTALLATION
 ################################################################################################
