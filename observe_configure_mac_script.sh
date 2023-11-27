@@ -216,7 +216,7 @@ printHelp(){
       log "- Optional --custom_fluentbit_config add an additional configuration file for fluentbit"
       log "***************************"
       log "### Sample command:"
-      log "\`\`\` curl \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\" | bash -s -- --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name \"https://<OBSERVE_CUSTOMER>.collect.observeinc.com/\" --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
+      log "\`\`\` bash <(curl -sSL \"https://raw.githubusercontent.com/observeinc/mac-host-configuration-scripts/main/observe_configure_mac_script.sh\") -- -s --customer_id OBSERVE_CUSTOMER --ingest_token OBSERVE_TOKEN --observe_host_name \"https://<OBSERVE_CUSTOMER>.collect.observeinc.com/\" --config_files_clean TRUE --datacenter MY_DATA_CENTER --appgroup MY_APP_GROUP\`\`\`"
       log "***************************"
 }
 
@@ -350,6 +350,70 @@ setInstallFlags(){
               ;;
         esac
   done
+}
+
+configureOsquery(){
+  # CONFIGURE
+  sudo mkdir -p /var/osquery/
+  sourcefilename=$config_file_directory/osquery.conf
+  filename=/var/osquery/osquery.conf
+  osquery_conf_filename=/var/osquery/osquery.conf
+
+  if [ -f "$filename" ]
+  then
+      sudo mv "$filename"  "$filename".OLD
+  fi
+
+  sudo cp "$sourcefilename" "$filename"
+
+  sourcefilename=$config_file_directory/osquery.flags
+  filename=/var/osquery/osquery.flags
+  osquery_flags_filename=/var/osquery/osquery.flags
+
+  if [ -f "$filename" ]
+  then
+      sudo mv "$filename"  "$filename".OLD
+  fi
+
+  sudo cp "$sourcefilename" "$filename"
+}
+
+configureFluentBit(){
+    # CONFIGURE
+  sudo mkdir -p $BASE_BREW/etc/fluent-bit
+  sourcefilename=$config_file_directory/fluent-bit.conf
+  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
+
+  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
+
+  if [ -f "$filename" ]; then
+      sudo mv "$filename"  "$filename".OLD
+  fi
+
+  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
+      sudo mkdir $BASE_BREW/etc/fluent-bit
+  fi
+  sudo cp "$sourcefilename" "$filename"
+
+  includeFilefluentAgent
+}
+
+configureTelegraf(){
+    # CONFIGURE
+  sudo mkdir -p  $BASE_BREW/etc
+  sourcefilename=$config_file_directory/telegraf.conf
+  filename=$BASE_BREW/etc/telegraf.conf
+
+  telegraf_conf_filename=$BASE_BREW/etc/telegraf.conf
+
+  if [ -f "$filename" ]
+  then
+    sudo mv "$filename"  "$filename".OLD
+  fi
+
+  sudo cp "$sourcefilename" "$filename"
+
+  LC_ALL=C  sed -i '' 's/\[\[inputs\.kernel\]\]/#[[inputs.kernel]]/'  $filename
 }
 
 printMessage(){
@@ -535,9 +599,7 @@ log "$SPACER"
 
 cd "$config_file_directory" || (exit && log "$SPACER CONFIG FILE DIRECTORY PROBLEM - $(pwd) - $config_file_directory - $END_OUTPUT $SPACER")
 
-# Escape the BASE_BREW path so the slashes don't mess up sed
-BREW_BASE= LC_ALL=C sed -e 's;/;\\/;g' $BASE_BREW
-LC_ALL=C sed -i '' -e "s/REPLACE_WITH_BASE_BREW/${BREW_BASE}/g" ./*
+LC_ALL=C sed -i '' -e "s|REPLACE_WITH_BASE_BREW|${BASE_BREW}|g" ./*
 
 LC_ALL=C sed -i '' -e "s/REPLACE_WITH_DATACENTER/${DEFAULT_OBSERVE_DATA_CENTER}/g" ./*
 
@@ -567,111 +629,103 @@ log "Installation beginning"
 # osquery
 #####################################
 if [ "$osqueryinstall" == TRUE ]; then
-
   printMessage "osquery"
 
-  # INSTALL
-  brew install --cask osquery &
-  wait
+  osquery_not_installed=$(brew info osquery | grep  "Not installed")
 
-  # CONFIGURE
-  sudo mkdir -p /var/osquery/
-  sourcefilename=$config_file_directory/osquery.conf
-  filename=/var/osquery/osquery.conf
-  osquery_conf_filename=/var/osquery/osquery.conf
+  if [ "$osquery_not_installed" == "Not installed" ]; then
+    echo "osquery not installed, installing."
+    brew install --cask osquery
+    wait
+    configureOsquery
+    sudo osqueryctl start 
+  else
+    echo "Found previous osquery installation, skipping installation."
+    read -rp "Would you like to overwrite your osquery config? (y/Y for yes): " user_input
 
-  if [ -f "$filename" ]
-  then
-      sudo mv "$filename"  "$filename".OLD
+    if [[ "$user_input" =~ ^[Yy]$ ]]; then
+      # INSTALL
+      echo "Overwriting osquery configs..."
+      configureOsquery
+      sudo osqueryctl restart
+    else
+      echo "Skipping osquery configuration"
+    fi
   fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  sourcefilename=$config_file_directory/osquery.flags
-  filename=/var/osquery/osquery.flags
-  osquery_flags_filename=/var/osquery/osquery.flags
-
-  if [ -f "$filename" ]
-  then
-      sudo mv "$filename"  "$filename".OLD
-  fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  # ENABLE AND START
-  sudo osqueryctl start 
-
 fi
+
 
 #####################################
 # fluent
 #####################################
 if [ "$fluentbitinstall" == TRUE ]; then
-
   printMessage "fluent"
+  fluent_not_installed=$(brew info fluent-bit | grep  "Not installed")
+  if [ "$fluent_not_installed" == "Not installed" ]; then
+    echo "fluent-bit not installed, installing."
+    brew install fluent-bit &
+    wait
+    configureFluentBit
+    sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
 
-  # INSTALL
-  brew install fluent-bit &
-  wait
+    # Check if the previous commands failed (exit status not equal to 0)
+    if [ $? -ne 0 ]; then
+      # Previous commands failed, so load the service
+      sudo launchctl enable system/fluent-bit
+      sudo launchctl kickstart -kp system/fluent-bit
+    fi
+  else
+    echo "Found previous fluent-bit installation, skipping installation."
+    read -rp "Would you like to overwrite your fluent-bit config? (y/Y for yes): " user_input
 
-  # CONFIGURE
-  sudo mkdir -p $BASE_BREW/etc/fluent-bit
-  sourcefilename=$config_file_directory/fluent-bit.conf
-  filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
+    if [[ "$user_input" =~ ^[Yy]$ ]]; then
+      # INSTALL
+      echo "Overwriting fluent-bit configs..."
+      configureFluentBit
+      sudo launchctl unload /Library/LaunchDaemons/fluent-bit.plist
+      sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
 
-  td_agent_bit_filename=$BASE_BREW/etc/fluent-bit/fluent-bit.conf
-
-  if [ -f "$filename" ]; then
-      sudo mv "$filename"  "$filename".OLD
-  fi
-
-  if [ ! -d "$BASE_BREW/etc/fluent-bit" ]; then
-      sudo mkdir $BASE_BREW/etc/fluent-bit
-  fi
-  sudo cp "$sourcefilename" "$filename"
-
-  includeFilefluentAgent
-
-  sudo launchctl load -w /Library/LaunchDaemons/fluent-bit.plist
-  # Check if the previous commands failed (exit status not equal to 0)
-  if [ $? -ne 0 ]; then
-    # Previous commands failed, so load the service
-    sudo launchctl enable system/fluent-bit
-    sudo launchctl kickstart -kp system/fluent-bit
+      if [ $? -ne 0 ]; then
+        # Previous commands failed, so load the service
+        sudo launchctl enable system/fluent-bit
+        sudo launchctl kickstart -k system/fluent-bit
+      fi
+    else
+      echo "Skipping fluent-bit configuration"
+    fi
   fi
 fi
+
 
 #####################################
 # telegraf
 #####################################
 if [ "$telegrafinstall" == TRUE ]; then
 
+
   printMessage "telegraf"
+  telegraf_not_installed=$(brew info telegraf | grep  "Not installed")
 
-  # INSTALL
-  brew install telegraf &
-  wait
+  if [ "$telegraf_not_installed" == "Not installed" ]; then
+    echo "telegraf not installed, installing."
+    brew install telegraf &
+    wait
+    configureTelegraf
+    sleep 5
+    brew services start telegraf
+  else
+    echo "Found previous telegraf installation, skipping installation."
+    read -rp "Would you like to overwrite your telegraf config? (y/Y for yes): " user_input
 
-  # CONFIGURE
-  sudo mkdir -p  $BASE_BREW/etc
-  sourcefilename=$config_file_directory/telegraf.conf
-  filename=$BASE_BREW/etc/telegraf.conf
-
-  telegraf_conf_filename=$BASE_BREW/etc/telegraf.conf
-
-  if [ -f "$filename" ]
-  then
-    sudo mv "$filename"  "$filename".OLD
+    if [[ "$user_input" =~ ^[Yy]$ ]]; then
+      # INSTALL
+      echo "Overwriting telegraf configs..."
+      configureTelegraf
+       brew services restart telegraf
+    else
+      echo "Skipping telegraf configuration"
+    fi
   fi
-
-  sudo cp "$sourcefilename" "$filename"
-
-  LC_ALL=C  sed -i '' 's/\[\[inputs\.kernel\]\]/#[[inputs.kernel]]/'  $filename
-     
-
-  # ENABLE AND START
-  sleep 5
-  brew services start telegraf
 
 fi
 
